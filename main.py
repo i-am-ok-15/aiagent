@@ -11,14 +11,16 @@ from google.genai import types
 
 client = genai.Client(api_key=api_key)
 
-input = sys.argv
-user_prompt = sys.argv[1]
 
-messages = [
-    types.Content(role="user", parts=[types.Part(text=user_prompt)]),
-]
 
 def main():
+    
+    input = sys.argv
+    user_prompt = sys.argv[1]
+
+    messages = [
+    types.Content(role="user", parts=[types.Part(text=user_prompt)]),
+    ]
     
     response = client.models.generate_content(
     model='gemini-2.0-flash-001', contents=messages
