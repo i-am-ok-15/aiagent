@@ -19,7 +19,7 @@ def get_files_info(working_directory, directory="."):
             directory_content.append(f"- {item}: file_size={file_size} bytes, is_dir={dir_status}")
     
     except Exception as error:
-        return f"Error: unable to complete. {error}"
+        return f"Error: unable to retrieve file details. {error}"
 
     content_string = "\n".join(directory_content)
     return content_string
