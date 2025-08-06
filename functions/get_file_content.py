@@ -4,7 +4,7 @@ from functions.get_files_info import get_files_info
 def get_file_content(working_directory, file_path):
     full_path_abs = os.path.abspath(os.path.join(working_directory, file_path))
 
-    if file_path not in get_files_info(working_directory):
+    if file_path not in get_files_info(full_path_abs):
         return f'Error: Cannot read "{file_path}" as it is outside the permitted working directory'
     if os.path.isfile(full_path_abs) is False:
         return f'Error: File not found or is not a regular file: "{file_path}"'
