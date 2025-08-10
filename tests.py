@@ -9,5 +9,12 @@ print(get_file_content("calculator", "/bin/cat"))
 
 print(get_file_content("calculator", "pkg/does_not_exist.py"))
 
+# print(get_files_info("calculator", "."))
+
+# print(get_files_info("calculator", "pkg"))
+
+# print(get_files_info("calculator", "/bin"))
+
+# print(get_files_info("calculator", "../"))
 
 
