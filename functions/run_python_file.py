@@ -12,25 +12,29 @@ def run_python_file(working_directory, file_path, args=[]):
         if not os.path.exists(abs_file_path):
             return f'Error: File "{file_path}" not found.'
 
-        if abs_file_path[-3:] != ".py":
+        if not file_path.endswith(".py"):
              return f'Error: "{file_path}" is not a Python file.'
         
         task = ["python", file_path] + args
 
-        output = subprocess.run(task, text=True, stdout=True, stderr=True, cwd=working_directory, timeout=30)
+        output = subprocess.run(task, text=True, capture_output=True, cwd=working_directory, timeout=30)
 
-        formatted_output = f"""
-                            STDOUT: {output.stdout}\n
-                            STDERR: {output.stderr}\n
-                            """
+        stdout_str = output.stdout.strip() if output.stdout else ""
+        stderr_str = output.stderr.strip() if output.stderr else ""
+
+        formatted_parts = []
+        if stdout_str:
+            formatted_parts.append(f"STDOUT: {stdout_str}")
+        if stderr_str:
+            formatted_parts.append(f"STDERR: {stderr_str}")
 
         if output.returncode != 0:
-            formatted_output += f"Process existed with code {output.returncode}"
-        
-        if output.stdout is None:
-            formatted_output += f"No output produced."
+            formatted_parts.append(f"Process exited with code {output.returncode}")
 
-        return formatted_output
+        if not formatted_parts:
+            return "No output produced."
+        
+        return "\n".join(formatted_parts)        
         
     except Exception as error:
         return f"Error: executing Python file: {error}"
