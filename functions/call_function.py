@@ -1,0 +1,68 @@
+import os
+from config import MAX_CHARS
+
+from google.genai import types
+
+from functions.get_files_info import get_files_info
+from functions.get_file_content import get_file_content
+from functions.run_python_file import run_python_file
+from functions.write_file import write_file
+
+schema_call_function = types.FunctionDeclaration(
+    name="call_function",
+    description="Call a function to execute.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        properties={
+            "function_name": types.Schema(
+                type=types.Type.STRING,
+                description="The function that will be called.",
+            ),
+        },
+    ),
+)
+
+
+def call_function(function_call_part, verbose=False):
+    
+    if verbose:
+        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+    
+    print(f" - Calling function: {function_call_part.name}")
+
+    func_dict = {"call_function": call_function,
+                 "get_file_content": get_file_content,
+                 "get_files_info": get_files_info,
+                 "run_python_file": run_python_file,
+                 "write_file": write_file
+                 }
+    
+    arg_dict = function_call_part.args
+    arg_dict.update({"working_directory": "./calculator"})
+
+    try:
+        function_result = func_dict[function_call_part.name](**arg_dict)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        
+        return types.Content(
+        role="tool",
+        parts=[
+            types.Part.from_function_response(
+                name=function_call_part.name,
+                response={"error": f"Unknown function: {function_call_part.name}"},
+            )
+        ],
+    )
+
+    return types.Content(
+        role="tool",
+        parts=[
+            types.Part.from_function_response(
+                name=function_call_part.name,
+                response={"result": function_result},
+            )
+        ],
+    )
+
+

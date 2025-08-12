@@ -14,6 +14,8 @@ from functions.get_files_info import schema_get_files_info
 from functions.get_file_content import schema_get_file_content
 from functions.run_python_file import schema_run_python_file
 from functions.write_file import schema_write_file
+from functions.call_function import schema_call_function
+from functions.call_function import call_function
 
 client = genai.Client(api_key=api_key)
 
@@ -29,6 +31,7 @@ def main():
             schema_get_file_content,
             schema_run_python_file,
             schema_write_file,
+            schema_call_function,
         ]
     )
 
@@ -53,6 +56,12 @@ def main():
     if response.function_calls:
         for function_call_part in response.function_calls:
             print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+            result = call_function(function_call_part)
+
+            if not result.parts[0].function_response.response:
+                raise Exception("""Error: fatal eception, ".parts[0].function_response.response" not present""")
+            if "--verbose" in sys.argv:
+                print(f"-> {result.parts[0].function_response.response}")
 
     print("Response:")
     print(response.text)
