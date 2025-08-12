@@ -1,5 +1,4 @@
-import os
-from config import MAX_CHARS
+from config import WORKING_DIR
 
 from google.genai import types
 
@@ -30,21 +29,19 @@ def call_function(function_call_part, verbose=False):
     
     print(f" - Calling function: {function_call_part.name}")
 
-    func_dict = {"call_function": call_function,
-                 "get_file_content": get_file_content,
-                 "get_files_info": get_files_info,
-                 "run_python_file": run_python_file,
-                 "write_file": write_file
-                 }
+    func_dict = {
+        "get_file_content": get_file_content,
+        "get_files_info": get_files_info,
+        "run_python_file": run_python_file,
+        "write_file": write_file
+    }
     
     arg_dict = function_call_part.args
-    arg_dict.update({"working_directory": "./calculator"})
+    arg_dict.update({"working_directory": WORKING_DIR})
 
     try:
         function_result = func_dict[function_call_part.name](**arg_dict)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        
+    except:        
         return types.Content(
         role="tool",
         parts=[
