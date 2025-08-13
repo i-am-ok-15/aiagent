@@ -24,11 +24,6 @@ schema_call_function = types.FunctionDeclaration(
 
 def call_function(function_call_part, verbose=False):
     
-    if verbose:
-        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
-    
-    print(f" - Calling function: {function_call_part.name}")
-
     func_dict = {
         "get_file_content": get_file_content,
         "get_files_info": get_files_info,

@@ -22,7 +22,6 @@ client = genai.Client(api_key=api_key)
 
 def main():
     
-    input = sys.argv
     user_prompt = sys.argv[1]
 
     available_functions = types.Tool(
@@ -39,32 +38,53 @@ def main():
     types.Content(role="user", parts=[types.Part(text=user_prompt)]),
     ]
     
-    response = client.models.generate_content(
-        model='gemini-2.0-flash-001', 
-        contents=messages,
-        config=types.GenerateContentConfig(
-            tools=[available_functions], 
-            system_instruction=SYSTEM_PROMPT
-        ),
-    )
-    
-    if "--verbose" in sys.argv:
-        print(f"User prompt: {user_prompt}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
-    
-    if response.function_calls:
-        for function_call_part in response.function_calls:
-            print(f"Calling function: {function_call_part.name}({function_call_part.args})")
-            result = call_function(function_call_part)
+    loop_count = 0
 
-            if not result.parts[0].function_response.response:
-                raise Exception("""Error: fatal eception, ".parts[0].function_response.response" not present""")
+    while loop_count < LOOP_LIMIT:
+    
+        try:
+            response = client.models.generate_content(
+                model='gemini-2.0-flash-001', 
+                contents=messages,
+                config=types.GenerateContentConfig(
+                    tools=[available_functions], 
+                    system_instruction=SYSTEM_PROMPT
+                ),
+            )
+
+            if response.candidates:
+                for candidate in response.candidates:
+                    messages.append(candidate.content)
+
             if "--verbose" in sys.argv:
-                print(f"-> {result.parts[0].function_response.response}")
+                print(f"User prompt: {user_prompt}")
+                print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+                print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
 
-    print("Response:")
-    print(response.text)
+            if response.function_calls:
+                for function_call_part in response.function_calls:
+                    print(f"- Calling function: {function_call_part.name}({function_call_part.args})")
+                    result = call_function(function_call_part)
+
+                    messages.append(result)
+
+                    if not result.parts[0].function_response.response:
+                        raise Exception("""Error: fatal eception, ".parts[0].function_response.response" not present""")
+                    if "--verbose" in sys.argv:
+                        print(f"-> {result.parts[0].function_response.response}")
+            else:
+                if response.text:
+                    print("*************************************************")
+                    print("Final response:")
+                    print(response.text)
+                    print("*************************************************")
+                    break
+
+            loop_count += 1
+
+        except Exception as error:
+            print("******************************************************")
+            print(f"""Error: unable complete "generate_content". {error}""")
 
 if __name__ == "__main__":
     main()
